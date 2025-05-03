@@ -6,7 +6,7 @@ const forge = require('node-forge');
 const crypto = require('crypto');
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer();
 const PORT = 3000;
 
 const CRL_PATH = path.join(__dirname, 'revoked_certs.json');
@@ -122,7 +122,9 @@ app.post('/revoke', upload.single('cert'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No certificate uploaded' });
 
   try {
-    const serialNumber = extractSerialNumberFromCert(req.file.path);
+    const certificate = req.file.buffer.toString('utf8');
+    const cert = forge.pki.certificateFromPem(certificate);
+    const serialNumber = cert.serialNumber.toUpperCase();
     const crl = loadCRL();
 
     // Verificar si el certificado ya está revocado
@@ -146,16 +148,14 @@ app.post('/check-revoked', upload.single('cert'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No certificate uploaded' });
 
   try {
-    const serialNumber = extractSerialNumberFromCert(req.file.path);
+    const certificate = req.file.buffer.toString('utf8');
+    const cert = forge.pki.certificateFromPem(certificate);
+    const serialNumber = cert.serialNumber.toUpperCase();
     const crl = loadCRL();
     const isRevoked = crl.includes(serialNumber);
 
-    // Eliminar archivo subido temporalmente
-    fs.unlinkSync(req.file.path);
-
     res.json({ serialNumber, revoked: isRevoked });
   } catch (err) {
-    fs.unlinkSync(req.file.path);
     res.status(500).json({ error: 'Failed to parse certificate', details: err.message });
   }
 });
