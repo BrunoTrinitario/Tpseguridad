@@ -4,8 +4,10 @@ const path = require('path');
 const multer = require('multer');
 const forge = require('node-forge');
 const crypto = require('crypto');
+const cors = require('cors');
 
 const app = express();
+app.use(cors());
 const upload = multer();
 const PORT = 3000;
 
@@ -158,7 +160,6 @@ app.post('/revoke', upload.single('cert'), (req, res) => {
   }
 });
 
-// Ruta para verificar si un certificado está revocado (subida de archivo)
 app.post('/check-revoked', upload.single('cert'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No certificate uploaded' });
 
@@ -175,10 +176,73 @@ app.post('/check-revoked', upload.single('cert'), (req, res) => {
   }
 });
 
-// Ruta para obtener todos los certificados revocados
 app.get('/revoked_list', (req, res) => {
-  const crl = loadCRL();
-  res.json({ revokedCertificates: crl });
+  const certsDir = path.join(__dirname, '../revocados');
+  try {
+    // Verificar que el directorio exista
+    if (!fs.existsSync(certsDir)) {
+      return res.status(404).json({ error: 'Directorio no encontrado.' });
+    }
+
+    const files = fs.readdirSync(certsDir);
+
+    const certificados = [];
+
+    for (const file of files) {
+      const certPath = path.join(certsDir, file);
+      const pem = fs.readFileSync(certPath, 'utf8');
+      try {
+        const cert = forge.pki.certificateFromPem(pem);
+        certificados.push({
+          sujeto: cert.subject.attributes.map(attr => `${attr.shortName}=${attr.value}`).join(', '),
+          valido_hasta: cert.validity.notAfter.toISOString(),
+          serial: cert.serialNumber
+        });
+      } catch (err) {
+
+      }
+    }
+
+    res.json(certificados);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al procesar certificados.' });
+  }
+});
+
+app.get('/certificates', (req, res) => {
+  const certsDir = path.join(__dirname, '../ya_certificados');
+
+  try {
+    // Verificar que el directorio exista
+    if (!fs.existsSync(certsDir)) {
+      return res.status(404).json({ error: 'Directorio no encontrado.' });
+    }
+
+    const files = fs.readdirSync(certsDir);
+
+    const certificados = [];
+
+    for (const file of files) {
+      const certPath = path.join(certsDir, file);
+      const pem = fs.readFileSync(certPath, 'utf8');
+      try {
+        const cert = forge.pki.certificateFromPem(pem);
+        certificados.push({
+          sujeto: cert.subject.attributes.map(attr => `${attr.shortName}=${attr.value}`).join(', '),
+          valido_hasta: cert.validity.notAfter.toISOString(),
+          serial: cert.serialNumber
+        });
+      } catch (err) {
+
+      }
+    }
+
+    res.json(certificados);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al procesar certificados.' });
+  }
 });
 
 app.post('/verify', upload.fields([

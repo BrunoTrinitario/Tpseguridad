@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Certificados</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    button { padding: 10px 20px; font-size: 16px; }
+    .cert { border: 1px solid #ccc; margin: 1em 0; padding: 1em; border-radius: 5px; }
+    .error { color: red; }
+    .dropzone {
+      width: 100%;
+      max-width: 400px;
+      height: 150px;
+      border: 2px dashed #666;
+      border-radius: 10px;
+      line-height: 150px;
+      color: #666;
+      margin: 20px auto;
+      display: none; /* Oculto por defecto */
+    }
+    #resultado {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="obtenerCertificados()">Cargar certificados</button>
+  <button onclick="obtenerCertificadosRevocados()">Cargar certificados revocados</button>
+  <button onclick="mostrarDropzone()">Verificar revocación</button>
+  <button onclick="mostrarDropzoneCertificados()">Cargar certificado a certificar</button>
+  <button onclick="mostrarDropzonesFirma()">Verificar firma</button>
+  
+  <div id="dropzone" class="dropzone">Soltá aquí el certificado</div>
+
+  <div id="dropzone_certificado" class="dropzone">Soltá aquí el certificado</div>
+
+  <div id="dropzone_archivo_firma" class="dropzone">Soltá aquí el archivo</div>
+  <div id="dropzone_firma_firma" class="dropzone">Soltá aquí la firma</div>
+  <div id="dropzone_certificado_firma" class="dropzone">Soltá aquí el certificado</div>
+  
+  <div id="resultado"></div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
