@@ -132,7 +132,7 @@ app.post('/revoke', upload.single('cert'), (req, res) => {
     }
     // debo buscar en ya certrificados el archivo que tenga el mismo serial y moverlo a revocados luego actualizar el json
     moveCertToRevoked(serialNumber);
-
+    generateSerialList();
 
     res.json({ message: 'Certificate revoked successfully', serialNumber });
   } catch (err) {
