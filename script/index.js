@@ -118,6 +118,21 @@ function moveCertToRevoked(serialNumber) {
   }
 }
 
+app.post('/to-certificate', upload.single('cert'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No certificate uploaded' });
+  try {
+    const outputDir = path.join(__dirname, '../para_certificar');
+    const filename = req.file.originalname || `cert_${Date.now()}.pem`;
+    const outputPath = path.join(outputDir, filename);
+    fs.writeFileSync(outputPath, req.file.buffer);
+    res.json({ message: 'Certificado guardado correctamente.', path: outputPath });
+    
+  } catch (err) {
+    fs.unlinkSync(req.file.path);
+    res.status(500).json({ error: 'Failed to revoke certificate', details: err.message });
+  }
+});
+
 app.post('/revoke', upload.single('cert'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No certificate uploaded' });
 
