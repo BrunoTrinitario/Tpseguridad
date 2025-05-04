@@ -6,6 +6,8 @@ const dropzone_firma_firma= document.getElementById('dropzone_firma_firma');
 const resultado = document.getElementById('resultado');
 const archivos_para_firma = [null,null,null];
 
+addEventsToDropzones();
+
 async function obtenerCertificados() {
     ocultarDropzones();
     document.getElementById('resultado').innerHTML = '';
@@ -76,10 +78,113 @@ function mostrarDropzone() {
     dropzone.style.display = 'block';
 }
 
+function mostrarDropzoneCertificados(){
+    ocultarDropzones();
+    resultado.innerHTML = '';
+    dropzone_certificado.style.display = 'block';
+}
+
+function ocultarDropzones(){
+    dropzone.style.display = 'none';
+    dropzone.classList.remove('active');
+    dropzone_certificado.style.display = 'none';
+    dropzone_certificado.classList.remove('active');
+    dropzone_archivo_firma.style.display = 'none';
+    dropzone_archivo_firma.classList.remove('active');
+    dropzone_certificado_firma.style.display = 'none';
+    dropzone_certificado_firma.classList.remove('active');
+    dropzone_firma_firma.style.display = 'none';
+    dropzone_certificado_firma.classList.remove('active');
+    dropzone_certificado_firma.style.display = 'none';
+
+}
+
+function mostrarDropzonesFirma(){
+    ocultarDropzones();
+    resultado.innerHTML = '';
+    dropzone_archivo_firma.style.display = 'block';
+    dropzone_certificado_firma.style.display = 'block';
+    dropzone_firma_firma.style.display = 'block';
+}
+
+async function verificarFirma(){
+  const formData = new FormData();
+  formData.append('document', archivos_para_firma[0]);
+  formData.append('signature', archivos_para_firma[1]);
+  formData.append('certificate', archivos_para_firma[2]);
+  try {
+      const res = await fetch('http://localhost:3000/verify', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        resultado.innerHTML = `<strong>Firma válida:</strong> ${data.valid ? 'Sí' : 'No'}`;
+      } else {
+        resultado.innerHTML = `<span style="color:red;">Error: ${data.error}</span>`;
+      }
+      archivos_para_firma = [null,null,null];
+    } catch (err) {
+      resultado.innerHTML = `<span style="color:red;">Fallo en la solicitud.</span>`;
+    }
+}
+
+function setActiveDropzone(dropzone, texto) {
+  dropzone.classList.add('active');
+  dropzone.textContent = texto;
+}
+
+function addEventsToDropzones(){
+dropzone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropzone.style.borderColor = 'blue';
+});
+
+dropzone.addEventListener('dragleave', () => {
+  dropzone.style.borderColor = '#666';
+});
+
+dropzone_archivo_firma.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropzone.style.borderColor = 'blue';
+});
+
+dropzone_archivo_firma.addEventListener('dragleave', () => {
+  dropzone.style.borderColor = '#666';
+});
+dropzone_certificado.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropzone.style.borderColor = 'blue';
+});
+
+dropzone_certificado.addEventListener('dragleave', () => {
+  dropzone.style.borderColor = '#666';
+});
+
+dropzone_certificado_firma.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropzone.style.borderColor = 'blue';
+});
+
+dropzone_certificado_firma.addEventListener('dragleave', () => {
+  dropzone.style.borderColor = '#666';
+});
+
+dropzone_firma_firma.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropzone.style.borderColor = 'blue';
+});
+
+dropzone_firma_firma.addEventListener('dragleave', () => {
+  dropzone.style.borderColor = '#666';
+});
+}
+
 dropzone.addEventListener('drop', async e => {
   e.preventDefault();
   dropzone.style.borderColor = '#666';
   const file = e.dataTransfer.files[0];
+  setActiveDropzone(dropzone, file.name);
   if (!file) return;
   const formData = new FormData();
   formData.append('cert', file);
@@ -104,56 +209,36 @@ dropzone.addEventListener('drop', async e => {
   }
 });
 
-function mostrarDropzoneCertificados(){
-    ocultarDropzones();
-    resultado.innerHTML = '';
-    dropzone_certificado.style.display = 'block';
-}
-
-function ocultarDropzones(){
-    dropzone.style.display = 'none';
-    dropzone_certificado.style.display = 'none';
-    dropzone_archivo_firma.style.display = 'none';
-    dropzone_certificado_firma.style.display = 'none';
-    dropzone_firma_firma.style.display = 'none';
-}
-
 dropzone_certificado.addEventListener('drop', async e => {
-    e.preventDefault();
-    dropzone_certificado.style.borderColor = '#666';
-    const file = e.dataTransfer.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('cert', file);
-    try {
-      const res = await fetch('http://localhost:3000/to-certificate', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (res.ok) {
-        resultado.innerHTML = `<strong>✅ ${data.message}</strong>`;
-      } else {
-        resultado.innerHTML = `<span style="color:red;">Error: ${data.error}</span>`;
-      }
-
-    } catch (err) {
-      resultado.innerHTML = `<span style="color:red;">Fallo en la solicitud.</span>`;
+  e.preventDefault();
+  dropzone_certificado.style.borderColor = '#666';
+  const file = e.dataTransfer.files[0];
+  setActiveDropzone(dropzone_certificado, file.name);
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('cert', file);
+  try {
+    const res = await fetch('http://localhost:3000/to-certificate', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok) {
+      resultado.innerHTML = `<strong>✅ ${data.message}</strong>`;
+    } else {
+      resultado.innerHTML = `<span style="color:red;">Error: ${data.error}</span>`;
     }
-  });
 
-function mostrarDropzonesFirma(){
-    ocultarDropzones();
-    resultado.innerHTML = '';
-    dropzone_archivo_firma.style.display = 'block';
-    dropzone_certificado_firma.style.display = 'block';
-    dropzone_firma_firma.style.display = 'block';
-}
+  } catch (err) {
+    resultado.innerHTML = `<span style="color:red;">Fallo en la solicitud.</span>`;
+  }
+});
 
 dropzone_archivo_firma.addEventListener('drop', async e => {
     e.preventDefault();
     dropzone_certificado.style.borderColor = '#666';
     const file = e.dataTransfer.files[0];
+    setActiveDropzone(dropzone_archivo_firma, file.name);
     if (!file) return;
     archivos_para_firma[0]=file;
     if (!archivos_para_firma.includes(null)) {
@@ -165,6 +250,7 @@ dropzone_certificado_firma.addEventListener('drop', async e => {
   e.preventDefault();
   dropzone_certificado.style.borderColor = '#666';
   const file = e.dataTransfer.files[0];
+  setActiveDropzone(dropzone_certificado_firma, file.name);
   if (!file) return;
   archivos_para_firma[2]=file;
   if (!archivos_para_firma.includes(null)) {
@@ -178,72 +264,8 @@ dropzone_firma_firma.addEventListener('drop', async e => {
   const file = e.dataTransfer.files[0];
   if (!file) return;
   archivos_para_firma[1]=file;
+  setActiveDropzone(dropzone_firma_firma, file.name);
   if (!archivos_para_firma.includes(null)) {
       await verificarFirma();
   }
 });
-
-async function verificarFirma(){
-    const formData = new FormData();
-    formData.append('document', archivos_para_firma[0]);
-    formData.append('signature', archivos_para_firma[1]);
-    formData.append('certificate', archivos_para_firma[2]);
-    try {
-        const res = await fetch('http://localhost:3000/verify', {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (res.ok) {
-          resultado.innerHTML = `<strong>Firma válida:</strong> ${data.valid ? 'Sí' : 'No'}`;
-        } else {
-          resultado.innerHTML = `<span style="color:red;">Error: ${data.error}</span>`;
-        }
-      } catch (err) {
-        resultado.innerHTML = `<span style="color:red;">Fallo en la solicitud.</span>`;
-      }
-}
-
-dropzone.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropzone.style.borderColor = 'blue';
-  });
-
-  dropzone.addEventListener('dragleave', () => {
-    dropzone.style.borderColor = '#666';
-  });
-
-  dropzone_archivo_firma.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropzone.style.borderColor = 'blue';
-  });
-
-  dropzone_archivo_firma.addEventListener('dragleave', () => {
-    dropzone.style.borderColor = '#666';
-  });
-  dropzone_certificado.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropzone.style.borderColor = 'blue';
-  });
-
-  dropzone_certificado.addEventListener('dragleave', () => {
-    dropzone.style.borderColor = '#666';
-  });
-
-  dropzone_certificado_firma.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropzone.style.borderColor = 'blue';
-  });
-
-  dropzone_certificado_firma.addEventListener('dragleave', () => {
-    dropzone.style.borderColor = '#666';
-  });
-
-  dropzone_firma_firma.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropzone.style.borderColor = 'blue';
-  });
-
-  dropzone_firma_firma.addEventListener('dragleave', () => {
-    dropzone.style.borderColor = '#666';
-  });
