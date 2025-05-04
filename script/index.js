@@ -21,12 +21,6 @@ function loadCRL() {
   }
 }
 
-function extractSerialNumberFromCert(certPath) {
-  const pem = fs.readFileSync(certPath, 'utf8');
-  const cert = forge.pki.certificateFromPem(pem);
-  return cert.serialNumber.toUpperCase(); // Aseguramos mayúsculas para coincidencia
-}
-
 function generateSerialList(){
     const revoked_serials = getAllSerialNumbers(path.join(__dirname, '../revocados'))
     const expired_serials = getExpiredSerialNumbers(path.join(__dirname, '../ya_certificados'))
@@ -255,9 +249,15 @@ app.post('/verify', upload.fields([
     const signature = req.files.signature[0].buffer;
     const certificate = req.files.certificate[0].buffer.toString('utf8');
 
-    const valid = verifySignature(document, signature, certificate);
+    const serilaList = loadCRL();
+    const cert = forge.pki.certificateFromPem(certificate);
+    if (serilaList.includes(cert.serialNumber.toUpperCase())) {
+      return res.status(400).json({ error: 'El certificado está revocado.' });
+    }else{
+      const valid = verifySignature(document, signature, certificate);
+      res.json({ valid });
+    }
 
-    res.json({ valid });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al verificar firma' });
