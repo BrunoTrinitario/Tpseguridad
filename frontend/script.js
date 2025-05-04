@@ -4,7 +4,7 @@ const dropzone_archivo_firma= document.getElementById('dropzone_archivo_firma');
 const dropzone_certificado_firma= document.getElementById('dropzone_certificado_firma');
 const dropzone_firma_firma= document.getElementById('dropzone_firma_firma');
 const resultado = document.getElementById('resultado');
-const archivos_para_firma = [null,null,null];
+let archivos_para_firma = [null,null,null];
 
 addEventsToDropzones();
 
@@ -121,10 +121,12 @@ async function verificarFirma(){
       if (res.ok) {
         resultado.innerHTML = `<strong>Firma válida:</strong> ${data.valid ? 'Sí' : 'No'}`;
       } else {
+
         resultado.innerHTML = `<span style="color:red;">Error: ${data.error}</span>`;
       }
       archivos_para_firma = [null,null,null];
     } catch (err) {
+      console.error(err);
       resultado.innerHTML = `<span style="color:red;">Fallo en la solicitud.</span>`;
     }
 }

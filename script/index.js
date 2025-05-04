@@ -140,7 +140,6 @@ app.post('/revoke', upload.single('cert'), (req, res) => {
 
     // Verificar si el certificado ya está revocado
     if (crl.includes(serialNumber)) {
-      fs.unlinkSync(req.file.path);
       return res.status(400).json({ error: 'Certificate already revoked' });
     }
     // debo buscar en ya certrificados el archivo que tenga el mismo serial y moverlo a revocados luego actualizar el json
@@ -257,7 +256,6 @@ app.post('/verify', upload.fields([
       const valid = verifySignature(document, signature, certificate);
       res.json({ valid });
     }
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al verificar firma' });
